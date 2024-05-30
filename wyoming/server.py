@@ -94,7 +94,7 @@ class AsyncServer(ABC):
         writer: asyncio.StreamWriter,
     ):
         handler = handler_factory(reader, writer)
-        task = asyncio.create_task(handler.run(), name="wyoming event handler")
+        task = asyncio.ensure_future(handler.run())
         self._handlers[task] = handler
         task.add_done_callback(lambda t: self._handlers.pop(t, None))
 
@@ -146,7 +146,7 @@ class AsyncTcpServer(AsyncServer):
             handler_callback, host=self.host, port=self.port
         )
 
-        await self._server.serve_forever()
+        await self._server.wait_closed()
 
     async def start(self, handler_factory: HandlerFactory) -> None:
         """Start server without blocking."""
